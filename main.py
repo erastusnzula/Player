@@ -8,24 +8,51 @@ from tkinter.filedialog import askdirectory
 from tkinter import ttk
 from PIL import Image, ImageTk
 from mutagen.mp3 import MP3
+from datetime import datetime
+
+year = datetime.now().strftime("%Y")
+
+print("\n****************************************************************")
+print(
+    """
+* This is an open player project.
+* Feel free to make any alterations to suit your interest.
+* Any damage that may result from this program or its alteration
+    the owner is not to be held liable.
+    """
+)
+print(f"* Copyright - Erastus Nzula, {year} *")
+print("\n****************************************************************")
 
 pygame.init()
 instance = vlc.Instance()
 
 
 class Player(tkinter.Tk):
+    """A class to hold all player functionalities."""
+
     def __init__(self):
+        """Initialize the class attributes."""
         super(Player, self).__init__()
         self.title("")
         self.geometry("1350x690+0+0")
-        self.iconbitmap("Icon/icon_.ico")
         self.protocol('WM_DELETE_WINDOW', self.exit_player)
 
+        for folder, subFolder, files in os.walk('.'):
+            for file in files:
+                if file == "icon.ico":  # search for icon.ico file.
+                    self.root.iconbitmap(file)
+            else:
+                pass
+
+        # Ttk style to style the progress bar.
         style = ttk.Style()
         style.theme_use('alt')
         style.configure("Blue.Horizontal.TProgressbar")
 
+        # Binding keyboard keys.
         self.bind("<Double-Button>", self.play_file)
+        self.bind("<Return>", self.play_file)
         self.bind("<n>", self.play_next_file)
         self.bind("<p>", self.play_previous_file)
         self.bind("<i>", self.increase_volume)
@@ -35,7 +62,10 @@ class Player(tkinter.Tk):
         self.bind("<m>", self.mute_file)
         self.bind("<Escape>", self.exit_player)
 
+        # The default font.
         self.font = "Times 13"
+
+        # Declared variables.
         self.add_files_directory_image = None
         self.play_file_image = None
         self.playing_file_image = None
@@ -53,7 +83,6 @@ class Player(tkinter.Tk):
         self.total_length = None
         self.total_length_formatted = None
         self.volume = None
-
         self.loops = 1
         self.previous_volume = []
         self.favourite = []
@@ -67,8 +96,11 @@ class Player(tkinter.Tk):
         self.display_current_file = tkinter.StringVar()
         self.file_start = tkinter.StringVar(value="00 : 00")
         self.file_end = tkinter.StringVar(value="00 : 00")
+
+        # Load buttons.
         self.load_buttons_images()
 
+        # Labels and frames.
         self.label = tkinter.Label(self, text="EMU-PLAYER", background="Light Grey", bd=5, relief=tkinter.GROOVE,
                                    font="Times 13 bold")
         self.label.pack(fill=tkinter.BOTH)
@@ -91,7 +123,7 @@ class Player(tkinter.Tk):
                                                relief=tkinter.GROOVE)
         self.video_files_frame.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
         self.video_files_label = tkinter.Label(self.video_files_frame, bd=5, background="Light Grey", width=100,
-                                               height=32)
+                                               height=25, font=self.font)
         self.video_files_label.pack(fill=tkinter.BOTH)
 
         self.buttons_frame = tkinter.Frame(self, relief=tkinter.GROOVE, bd=5, background="Light Grey")
@@ -102,13 +134,14 @@ class Player(tkinter.Tk):
         self.file_start_label = tkinter.Label(self.duration_frame, textvariable=self.file_start)
         self.file_start_label.pack(side=tkinter.LEFT)
 
-        self.file_progress_label = ttk.Progressbar(self.duration_frame, style="Blue.Horizontal.TProgressbar",
+        self.file_progress_label = ttk.Progressbar(self.duration_frame,
                                                    orient=tkinter.HORIZONTAL, mode="determinate", length=1255)
         self.file_progress_label.pack(fill=tkinter.X, side=tkinter.LEFT, padx=5)
 
         self.file_end_label = tkinter.Label(self.duration_frame, textvariable=self.file_end)
         self.file_end_label.pack(side=tkinter.LEFT)
 
+        # Buttons.
         self.add_files_directory_button = tkinter.Button(self.buttons_frame, text="Add",
                                                          command=self.add_files_directory,
                                                          image=self.add_files_directory_image)
@@ -132,16 +165,18 @@ class Player(tkinter.Tk):
                                                    command=self.view_playlist_control)
 
         self.favourite_button = tkinter.Button(self.buttons_frame, text="-Add to Favourite-",
-                                               command=self.add_to_favorite)
+                                               command=self.add_to_favorite, font=self.font)
         self.delete_button = tkinter.Button(self.buttons_frame, text="-Delete-",
-                                            command=self.delete)
+                                            command=self.delete, font=self.font)
         self.clear_button = tkinter.Button(self.buttons_frame, text="-Clear-",
-                                           command=self.clear)
+                                           command=self.clear, font=self.font)
 
+        # Volume scale.
         self.volume_scale = tkinter.Scale(self.buttons_frame, width=10, sliderlength=20, length=100,
                                           orient=tkinter.HORIZONTAL, command=self.get_volume)
         self.volume_scale.set(80)
 
+        # Pack the buttons.
         self.add_files_directory_button.pack(side=tkinter.LEFT)
         self.play_previous_file_button.pack(side=tkinter.LEFT)
         self.play_file_button.pack(side=tkinter.LEFT)
@@ -157,6 +192,7 @@ class Player(tkinter.Tk):
         self.volume_scale.pack(side=tkinter.RIGHT)
 
     def load_buttons_images(self):
+        """Load image buttons into tkinter."""
         self.add_files_directory_image = ImageTk.PhotoImage(Image.open("Buttons/add.jpg").resize((40, 27)))
         self.play_file_image = ImageTk.PhotoImage(Image.open("Buttons/play.jpg").resize((40, 27)))
         self.play_next_file_image = ImageTk.PhotoImage(Image.open("Buttons/next.jpg").resize((40, 27)))
@@ -171,6 +207,7 @@ class Player(tkinter.Tk):
         self.repeat_image = ImageTk.PhotoImage(Image.open("Buttons/repeat.png").resize((40, 27)))
 
     def add_files_directory(self):
+        """Add files into the playlist."""
         try:
             directory = askdirectory()
             os.chdir(directory)
@@ -190,6 +227,10 @@ class Player(tkinter.Tk):
             pass
 
     def play_file(self, *args):
+        """
+        Check if the file is an audio or a video and
+        initiate the necessary play method.
+        """
         if self.playlist_box.curselection():
             self.file = self.playlist_box.get(tkinter.ACTIVE)
             self.playlist_box.selection_set(tkinter.ACTIVE)
@@ -213,6 +254,7 @@ class Player(tkinter.Tk):
             self.play_file_button.config(image=self.playing_file_image)
 
     def play_audio_file(self):
+        """Play audio files."""
         self.pause = False
         self.video_file_playing = False
         pygame.mixer.music.load(self.file)
@@ -225,8 +267,12 @@ class Player(tkinter.Tk):
         self._video_playlist_frames_restoration()
         self.view_playlist_button.config(state=tkinter.DISABLED)
         self.bind("<space>", self.pause_audio_file)
+        self.video_files_label.config(text=self.file)
+        if self.total_length <= 0:
+            self.play_next_file()
 
     def audio_file_duration(self):
+        """Track audio files duration."""
         if self.playlist_box.curselection() and not self.video_file_playing:
             self.video_file_playing = False
             file_play_time = pygame.mixer.music.get_pos() / 1000
@@ -250,6 +296,7 @@ class Player(tkinter.Tk):
             self.file_start_label.after(1000, self.audio_file_duration)
 
     def play_video_file(self):
+        """Play video files."""
         self.video_file_playing = True
         self.video_file_pause = False
         self.stop()
@@ -266,8 +313,11 @@ class Player(tkinter.Tk):
         self._video_playlist_frames_enlargement()
         self.view_playlist_button.config(state=tkinter.ACTIVE)
         self.bind("<space>", self.pause_video_file)
+        if self.player.get_length() <= 0:
+            self.play_next_file()
 
     def video_file_duration(self):
+        """Track video files duration."""
         if self.playlist_box.curselection() and self.video_file_playing:
             video_total_length = self.player.get_length() / 1000
             file_play_time = self.player.get_position()
@@ -292,29 +342,34 @@ class Player(tkinter.Tk):
             self.file_start_label.after(1000, self.video_file_duration)
 
     def _video_playlist_frames_enlargement(self):
+        """Screen enlargement."""
         self.playlist_frame.place(x=0, y=0)
-        self.playlist_box.config(height=50, width=192)
+        # self.playlist_box.config(height=50, width=192)
         self.video_files_frame.pack()
-        self.video_files_label.config(height=50, width=192)
+        self.video_files_label.config(height=30, width=150)
         self.view_playlist = False
         self.title(self.file)
 
     def _video_playlist_frames_restoration(self):
+        """Restore default screen size."""
         self.playlist_frame.pack(fill=tkinter.BOTH)
         self.playlist_box.config(width=70, height=25)
         self.video_files_frame.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-        self.video_files_label.config(height=32, width=100)
+        self.video_files_label.config(height=25, width=100)
         self.view_playlist = True
         self.title("")
 
     def add_to_favorite(self):
+        """Store favourite files."""
         if self.playlist_box.curselection():
             favourite = self.playlist_box.curselection()
             get_favourite = self.playlist_box.get(favourite)
-            self.favourite.append(get_favourite)
+            if get_favourite not in self.favourite:
+                self.favourite.append(get_favourite)
             print(self.favourite)
 
     def view_playlist_control(self, *args):
+        """Facilitate screen enlargement and restoration."""
         if self.video_file_playing:
             if self.view_playlist:
                 self._video_playlist_frames_enlargement()
@@ -324,6 +379,7 @@ class Player(tkinter.Tk):
                 self.view_playlist = True
 
     def loops_control(self):
+        """Facilitate change in loops."""
         if self.repeat_current_file and (self.loops == -1 or self.loops == 0):
             self.loops = 1
 
@@ -338,6 +394,7 @@ class Player(tkinter.Tk):
             self.repeat_current_file = True
 
     def shuffle_mode(self):
+        """Facilitate changes in shuffle."""
         if self.shuffle:
             self.loops = 1
             self.order_button.config(image=self.order_image, background="Pink")
@@ -350,6 +407,7 @@ class Player(tkinter.Tk):
             self.shuffle = True
 
     def mute_file(self, *args):
+        """Mute playing file."""
         if self.mute:
             pygame.mixer.music.set_volume(self.previous_volume[0] / 100)
             self.volume_scale.set(self.previous_volume[0])
@@ -365,6 +423,7 @@ class Player(tkinter.Tk):
             self.mute = True
 
     def play_next_file(self, *args):
+        """Play the next file."""
         if self.playlist_box.curselection():
             current_file = self.playlist_box.curselection()
             self.playlist_box.selection_clear(tkinter.ACTIVE)
@@ -374,6 +433,7 @@ class Player(tkinter.Tk):
             self.play_file()
 
     def play_previous_file(self, *args):
+        """Play the previous file."""
         if self.playlist_box.curselection():
             current_file = self.playlist_box.curselection()
             self.playlist_box.selection_clear(tkinter.ACTIVE)
@@ -383,6 +443,7 @@ class Player(tkinter.Tk):
             self.play_file()
 
     def play_in_shuffle_mode(self):
+        """Initiate shuffle mode."""
         if self.playlist_box.curselection():
             self.playlist_box.selection_clear(tkinter.ACTIVE)
             file = randint(0, self.playlist_box.size())
@@ -391,6 +452,7 @@ class Player(tkinter.Tk):
             self.play_file()
 
     def pause_audio_file(self, *args):
+        """Pause playing audio file."""
         if self.pause:
             pygame.mixer.music.unpause()
             self.pause = False
@@ -401,6 +463,7 @@ class Player(tkinter.Tk):
             self.play_file_button.config(image=self.play_file_image)
 
     def pause_video_file(self, *args):
+        """Pause playing video file."""
         if self.video_file_pause:
             self.player.play()
             self.video_file_pause = False
@@ -411,6 +474,7 @@ class Player(tkinter.Tk):
             self.play_file_button.config(image=self.play_file_image)
 
     def stop(self):
+        """Stop playing file."""
         self._video_playlist_frames_restoration()
         try:
             pygame.mixer.music.stop()
@@ -421,6 +485,7 @@ class Player(tkinter.Tk):
             self.play_file_button.config(image=self.play_file_image, command=self.play_audio_file)
 
     def get_volume(self, volume):
+        """Set volume."""
         try:
             self.volume = float(volume) / 100
             pygame.mixer.music.set_volume(self.volume)
@@ -429,18 +494,21 @@ class Player(tkinter.Tk):
             pass
 
     def increase_volume(self, *args):
+        """Increase volume."""
         current_volume = self.volume_scale.get()
         volume = int(current_volume)
         volume += 1
         self.volume_scale.set(volume)
 
     def decrease_volume(self, *args):
+        """Decrease volume."""
         current_volume = self.volume_scale.get()
         volume = int(current_volume)
         volume -= 1
         self.volume_scale.set(volume)
 
     def clear(self):
+        """Clear playlist."""
         self.stop()
         self.playlist_box.delete(0, tkinter.END)
         self._video_playlist_frames_restoration()
@@ -450,6 +518,7 @@ class Player(tkinter.Tk):
         self.file_progress_label.config(value=0)
 
     def delete(self):
+        """Delete a file."""
         files = self.playlist_box.curselection()
         for file in files:
             file_ = self.playlist_box.get(file)
@@ -460,6 +529,7 @@ class Player(tkinter.Tk):
                 self.playlist_box.delete(file)
 
     def exit_player(self, *args):
+        """The exit protocol."""
         self.destroy()
         self.quit()
 
