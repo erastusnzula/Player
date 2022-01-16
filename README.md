@@ -3,9 +3,9 @@ PLAYER
 
 Player is a project that lets you play your favorite videos and audios conveniently.
 It supports all major video and audio file extensions such as mp4, mp3, wav, vob etc. The player 
-automatically loads all audio and video file in  a directory, sparing you the hectic of manually
+automatically loads all audio and video files in  a directory, sparing you the hectic of manually
 adding a single file at a time. The player also accommodates all play modes, repeat, shuffle and descending
-mode. The player presents with an easy-to-use interface, with buttons that performs all player 
+mode. The player presents you with an easy-to-use interface and buttons that performs all player 
 functionalities as shown below.
 ![player image](images/player.JPG)
 
